@@ -33,14 +33,21 @@ Resources:
 
   # This is a Lambda function config associated with the source code: hello-from-lambda.js
   helloFromLambdaFunction:
-    Type: AWS::Serverless::Function
+    Type: 'AWS::Serverless::Function'
     Properties:
       CodeUri: ./
       Handler: src/handlers/hello-from-lambda.helloFromLambdaHandler
       Runtime: nodejs14.x
       MemorySize: 128
       Timeout: 60
-      Description: A Lambda function that returns a static string.
-      Policies:
+      Description: 'A Lambda function that returns a static string.'
+      #Policies:
         # Give Lambda basic execution Permission to the helloFromLambda
-        - AWSLambdaBasicExecutionRole
+        #- AWSLambdaBasicExecutionRole
+      Role: 'arn:aws:iam::899789784021:role/cicd-v1-lambda-role'
+      Events:
+        getAZsAPI:
+          Type: Api
+          Properties:
+            Path: /getazs
+            Method: get
