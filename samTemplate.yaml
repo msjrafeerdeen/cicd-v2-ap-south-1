@@ -1,49 +1,37 @@
-# This is the SAM template that represents the architecture of your serverless application
-# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-template-basics.html
-
-# The AWSTemplateFormatVersion identifies the capabilities of the template
-# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/format-version-structure.html
-AWSTemplateFormatVersion: 2010-09-09
-Description: >-
-  Start from scratch starter project
-
-# Transform section specifies one or more macros that AWS CloudFormation uses to process your template
-# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-section-structure.html
-Transform: AWS::Serverless-2016-10-31
-
-# Shared configuration for all resources, more in
-# https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
-Globals:
-  Function:
-    # The PermissionsBoundary allows users to safely develop with their function's permissions constrained
-    # to their current application. All the functions and roles in this application have to include it and
-    # it has to be manually updated when you add resources to your application.
-    # More information in https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html
-    PermissionsBoundary: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${AppId}-${AWS::Region}-PermissionsBoundary'
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: CI CD Version 1 N.Virginia
 
 Parameters:
-  AppId:
+  MyEnvironment:
     Type: String
+    Default: staging
+    AllowedValues:
+      - staging
+      - production
+      - dr
+    Description: Environment of this stack of resources
 
-# Resources declares the AWS resources that you want to include in the stack
-# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
+Mappings:
+  ResourcesName:
+    staging:
+      funcName: MyLambda-staging
+    production:
+      funcName: MyLambda-production
+    dr:
+      funcName: MyLambda-dr
+
 Resources:
-  # Each Lambda function is defined by properties:
-  # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-
-  # This is a Lambda function config associated with the source code: hello-from-lambda.js
-  helloFromLambdaFunction:
+  CDDemoLambda:
     Type: 'AWS::Serverless::Function'
     Properties:
-      CodeUri: ./
-      Handler: src/handlers/hello-from-lambda.helloFromLambdaHandler
-      Runtime: nodejs14.x
+      FunctionName: !FindInMap [ResourcesName, !Ref MyEnvironment, funcName]
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.6
+      CodeUri: ./lambda
+      Description: 'Lambda function for Demo'
       MemorySize: 128
-      Timeout: 60
-      Description: 'A Lambda function that returns a static string.'
-      #Policies:
-        # Give Lambda basic execution Permission to the helloFromLambda
-        #- AWSLambdaBasicExecutionRole
+      Timeout: 30
       Role: 'arn:aws:iam::899789784021:role/cicd-v1-lambda-role'
       Events:
         getAZsAPI:
@@ -51,3 +39,7 @@ Resources:
           Properties:
             Path: /getazs
             Method: get
+      Environment:
+        Variables:
+          REGION: us-east-1
+          MODE: !Ref MyEnvironment

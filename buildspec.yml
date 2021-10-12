@@ -1,20 +1,10 @@
-version: 0.2
+version: 0.1
 phases:
   install:
     commands:
-      # Install all dependencies (including dependencies for running tests)
-      - npm install
-  pre_build:
-    commands:
-      # Discover and run unit tests in the '__tests__' directory
-      - npm run test
-      # Remove all dependencies not needed for the Lambda deployment package (the packages from devDependencies in package.json)
-      - npm prune --production
-  build:
-    commands:
-      # Use AWS SAM to package the application by using AWS CloudFormation
-      - aws cloudformation package --template samTemplate.yaml --s3-bucket cicd-v2-us-east-1 --output-template-file outputSamTemplate.yaml 
+      - aws cloudformation package --template-file samTemplate.yaml --s3-bucket cicd-v1-us-east-1 --output-template-file outputSamTemplate.yaml
 artifacts:
+  type: zip
   files:
     - samTemplate.yaml
     - outputSamTemplate.yaml
